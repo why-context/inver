@@ -97,29 +97,44 @@ jobs:
           sep-tags: " "
           sep-annotations: " "
 
+      - name: Start Local Registry
+        run: |
+          podman run -d -p 5000:5000 --restart=always --name registry registry:2
+
+      # - name: Build Image
+      #   id: build_image
+      #   uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2
+      #   with:
+      #     containerfiles: |
+      #       ./Containerfile
+      #     # Postfix image name with -custom to make it a little more descriptive
+      #     # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
+      #     image: ${{ env.IMAGE_NAME }}
+      #     tags: ${{ steps.metadata.outputs.tags }}
+      #     labels: ${{ steps.metadata.outputs.labels }}
+      #     oci: false
+
       - name: Build Image
         id: build_image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2
-        with:
-          containerfiles: |
-            ./Containerfile
-          # Postfix image name with -custom to make it a little more descriptive
-          # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          oci: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo -E buildah build \
+            --target ${{ steps.base.outputs.container_target }} \
+            --build-arg-file build_args.txt \
+            --secret "id=GITHUB_TOKEN,env=GITHUB_TOKEN" \
+            --tag raw-img .
 
-      # Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
-      # This does not make your image faster to download, just provides better resumability and fixes a few errors.
-      # Documentation for Rechunk is provided on their github repository at https://github.com/hhd-dev/rechunk
-      # You can enable it by uncommenting the following lines:
+      Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
+      This does not make your image faster to download, just provides better resumability and fixes a few errors.
+      Documentation for Rechunk is provided on their github repository at https://github.com/hhd-dev/rechunk
+      You can enable it by uncommenting the following lines:
       - name: Run Rechunker
         id: rechunk
         uses: ublue-os/legacy-rechunk@a925083d9af7cb04b3e2a6e8c01bfa495f38b710 # v1.0.0
         with:
           rechunk: "ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64"
-          ref: "containers-storage:/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
+          ref: "raw-img"
           prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           skip_compression: true
           version: ${{ env.CENTOS_VERSION }}
