@@ -11,11 +11,11 @@ set -ouex pipefail
 
 # this installs a package from fedora repos
 # dnf5 install -y tmux
-dnf5 remove -y waydroid waydroid-selinux ptyxis lutris
+dnf5 remove -y waydroid waydroid-selinux ptyxis lutris qemu qemu-* xrdc spice-server
 
 
 # ADD SECURITY FEATURES
-dnf5 install -y dnscrypt-proxy
+dnf5 install -y ghostty
 
 tee -a /etc/NetworkManager/conf.d/00-macrandomization.conf > /dev/null << 'EOF'
 [device]
@@ -34,6 +34,15 @@ net.ipv4.icmp_echo_ignore_broadcasts = 1
 
 kernel.randomize_va_space = 2
 EOF
+
+mkdir -p /etc/systemd/resolved.conf.d/
+tee -a /etc/systemd/resolved.conf.d/99-DNS-DoT.conf > /dev/null << 'EOF'
+[Resolve]
+DNSSEC=allow-downgrade
+DNSOverTLS=opportunistic
+Cache=yes
+EOF
+
 
 # Use a COPR Example:
 #
