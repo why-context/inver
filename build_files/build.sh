@@ -10,7 +10,7 @@ set -ouex pipefail
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
 
 # We're gonna setup sudo-rs first
-dnf5 install sudo-rs
+dnf5 install -y sudo-rs
 update-alternatives --set sudo /usr/bin/sudo-rs
 
 dnf5 remove -y waydroid waydroid-selinux ptyxis lutris qemu qemu-* xrdc spice-server akonadi-server konsole sudo
