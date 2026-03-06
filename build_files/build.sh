@@ -9,17 +9,11 @@ set -ouex pipefail
 # List of rpmfusion packages can be found here:
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
 
-# We're gonna setup sudo-rs first
-dnf5 install -y sudo-rs
-update-alternatives --set sudo /usr/bin/sudo-rs
-
-dnf5 remove -y waydroid waydroid-selinux ptyxis lutris qemu qemu-* xrdc spice-server akonadi-server konsole sudo
+dnf5 remove -y waydroid waydroid-selinux ptyxis lutris qemu qemu-* spice-server akonadi-server konsole
 
 dnf5 copr enable scottames/ghostty -y
 dnf5 install -y ghostty --skip-unavailable
 dnf5 -y copr disable scottames/ghostty
-
-ln -sf /usr/bin/sudo-rs /usr/bin/sudo
 
 # Use a COPR Example:
 #
